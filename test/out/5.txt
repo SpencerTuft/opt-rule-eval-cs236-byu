@@ -1,0 +1,12 @@
+Dependency Graph
+R0:R0,R1
+R1:R2
+R2:R0,R1
+
+Rule Evaluation
+2 passes: R0,R1,R2
+
+Query Evaluation
+bob(x)? Yes(2)
+  x='1'
+  x='2'

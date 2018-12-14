@@ -5,7 +5,7 @@ RED=$'\e[0;31m'
 GREEN=$'\e[0;32m'
 NORMAL=$'\e[0m'
 
-declare EXE_PATH="./cmake-build-debug/datalog-interpreter-cs236-byu"
+declare EXE_PATH="./cmake-build-debug/opt-rule-eval-cs236-byu"
 declare IN_PATH="./test/in"
 declare OUT_PATH="./test/out"
 declare EXPECTED_PATH="./test/expected"

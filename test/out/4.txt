@@ -1,0 +1,9 @@
+Dependency Graph
+R0:
+
+Rule Evaluation
+1 passes: R0
+
+Query Evaluation
+bob(x)? Yes(1)
+  x='1'

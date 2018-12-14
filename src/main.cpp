@@ -22,6 +22,7 @@ int main(int argc, const char *argv[]) {
   auto queries = interpreter.getQueries();
   auto queryResults = db.execute(queries);
 
+  std::cout << "Query Evaluation" << std::endl;
   for (int i = 0, max = static_cast<int>(queryResults.size()); i < max; i++) {
     if (i != 0) std::cout << std::endl;
     std::cout << queries[i].str() << " ";

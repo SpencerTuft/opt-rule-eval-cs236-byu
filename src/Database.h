@@ -20,6 +20,7 @@ class Database {
   void add(Scheme);
   void add(std::vector<Fact>);
   void add(Fact);
+  void opt_add(std::vector<Rule>);
   void add(std::vector<Rule>);
   void add(Rule);
  public:

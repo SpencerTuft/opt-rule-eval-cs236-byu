@@ -1,0 +1,15 @@
+Dependency Graph
+R0:R0
+R1:R1,R2
+R2:
+
+Rule Evaluation
+1 passes: R2
+2 passes: R1
+2 passes: R0
+
+Query Evaluation
+Ancestor(x,'ned')? Yes(2)
+  x='bob'
+  x='jim'
+Sibling('ned','sue')? Yes(1)

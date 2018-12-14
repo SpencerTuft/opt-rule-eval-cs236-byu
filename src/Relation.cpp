@@ -141,7 +141,7 @@ Relation Relation::join(std::string name, Relation relation) {
   auto join_on = [](List h1, List h2) {
     std::vector<std::pair<int, int>> join_columns;
     for (size_t i = 0; i < h1.size(); i++) {
-      for (size_t j = 0; j < h1.size(); j++) {
+      for (size_t j = 0; j < h2.size(); j++) {
         if (h1[i] == h2[j]) {
           std::pair<int, int> temp_pair;
           temp_pair.first = static_cast<int>(i);
@@ -156,11 +156,11 @@ Relation Relation::join(std::string name, Relation relation) {
   auto deduplicate = [](List l1, List l2, std::vector<std::pair<int, int>> column_pairs) {
     // Helper function
     auto includes = [](std::vector<int> vec, int item) {
-      for (auto &element : vec) {
-        if (element == item) return true;
-      }
-      return false;
-    };
+    for (auto &element : vec) {
+      if (element == item) return true;
+    }
+    return false;
+  };
 
     // Get l2 columns from column_pairs
     std::vector<int> removeFromL2;

@@ -4,6 +4,9 @@
 
 #include <algorithm>
 #include "Database.h"
+#include "DependencyGraph.h"
+#include "DFSForest.h"
+
 Database::Database(std::vector<Scheme> schemes) {
   add(std::move(schemes));
 };
@@ -14,7 +17,7 @@ Database::Database(std::vector<Scheme> schemes, std::vector<Fact> facts) {
 Database::Database(std::vector<Scheme> schemes, std::vector<Fact> facts, std::vector<Rule> rules) {
   add(std::move(schemes));
   add(std::move(facts));
-  add(std::move(rules));
+  opt_add(std::move(rules));
 }
 void Database::add(std::vector<Relation> relations) {
   for (auto &relation : relations) {
@@ -210,6 +213,84 @@ void Database::add(Rule rule) {
 //    std::cout << "No result" << std::endl;
 //  }
 }
+void Database::opt_add(std::vector<Rule> rules) {
+  auto database_tuple_count = [](auto &r) {
+    int count = 0;
+    for (auto &relation : r) {
+      count += relation.second.get_tuples().size();
+    }
+    return count;
+  };
+
+  auto includes = [](std::map<int, std::set<int>> mapping, int item) {
+    std::set<int> list = mapping.at(item);
+    auto found = list.find(item);
+    return found != list.end();
+  };
+
+  std::stringstream ss;
+  auto original_dg = DependencyGraph(rules);
+  auto rule_numbers = original_dg.get_numbers();
+  auto inverted_dg = original_dg.invert();
+  ss << "Dependency Graph" << std::endl << original_dg.str() << std::endl;
+//  std::cout << "Inverted Graph" << std::endl << inverted_dg.str() << std::endl;
+
+  auto preforest = DFSForest(inverted_dg, rule_numbers);
+//  std::cout << "DFS Forest" << std::endl << preforest.str() << std::endl;
+
+  auto topological_order = preforest.generate_topological_ordering();
+
+  auto dependency_forest = DFSForest(original_dg, topological_order);
+  auto strongly_connected_components = dependency_forest.generate_strongly_connected_components();
+
+  ss << "Rule Evaluation" << std::endl;
+  for (auto &component : strongly_connected_components) {
+    // If an component contains only one rule and that rule does not depend on itself
+    bool rule_depends_on_self = includes(original_dg.get_dependency_list(), *component.begin());
+    if (component.size() == 1 && !rule_depends_on_self) {
+      int rule_num = *component.begin();
+      // Trivial Evaluation
+      add(rules[rule_num]); // the only rule is only evaluated once
+      ss << "1 passes: R" << rule_num << std::endl;
+    } else { // component contains more than one rule or a single rule that depends on itself
+      std::vector<Rule> component_rules;
+//      std::vector<int> rule_iteration_count;
+      for (auto &rule_num : component) {
+        component_rules.emplace_back(rules[rule_num]);
+//        rule_iteration_count.emplace_back(0);
+      }
+
+      // Non-Trivial Fixed-Point Evaluation
+      int before_tuple_count = 0;
+      int after_tuple_count = database_tuple_count(r);
+      int iteration_count = 0;
+      while (before_tuple_count != after_tuple_count) {
+        before_tuple_count = after_tuple_count;
+        iteration_count++;
+//    std::cout << "-- Iteration: " << iteration_count << " --" << std::endl;
+
+        // Extend rules and output results
+        for (int i = 0, max = static_cast<int>(component_rules.size()); i < max; i++) {
+//          rule_iteration_count[i]++;
+          add(component_rules[i]);
+        }
+
+        // Evaluate current size of database
+        after_tuple_count = database_tuple_count(r);
+      }
+
+      ss << iteration_count << " passes: ";
+      for (int i = 0, max = static_cast<int>(component.size()); i < max; i++) {
+        ss << "R" << *std::next(component.begin(), i);
+        if (i != max-1) ss << ",";
+      }
+      ss << std::endl;
+    }
+  }
+
+  std::cout << ss.str() << std::endl;
+}
+
 void Database::add(std::vector<Rule> rules) {
   auto database_tuple_count = [](auto &r) {
     int count = 0;
@@ -235,7 +316,4 @@ void Database::add(std::vector<Rule> rules) {
     // Evaluate current size of database
     after_tuple_count = database_tuple_count(r);
   }
-
-  // Output Summary
-  std::cout << "Schemes populated after " << iteration_count << " passes through the Rules." << std::endl;
 }
